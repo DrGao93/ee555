@@ -1,10 +1,17 @@
-"""Custom topology example
+'''
+    EE 555 Project - Router Exercise
 
-    EE 555 Project - Router Exercise - Part 2
+        PART II
 
-Adding the 'topos' dict with a key/value pair to generate our newly defined
-topology enables one to pass in '--topo=mytopo' from the command line.
-"""
+    Name:   Hao Zhang
+    Email:  zhan849@usc.edu
+    USC ID: 5211-2727-12
+
+    The topology file for part 2.
+    To run:
+    $ sudo mn --custom ee555P2.py --topo ee555P2 --mac --controller=remote,ip=127.0.0.1
+
+'''
 
 from mininet.topo import Topo
 

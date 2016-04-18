@@ -1,0 +1,66 @@
+=========================================================
+
+    EE 555 Project - Router Exercise
+
+        PART I
+    
+    Name:   Hao Zhang
+    Email:  zhan849@usc.edu
+    USC ID: 5211-2727-12
+
+========================================================
+
+1. Run code
+    For part 1, one needs to open two terminals, one for the controller, and the other for Mininet
+
+    To start mininet topology:
+    $ sudo mn --custom router_exercise_topo.py --topo RouterExercise --mac --controller=remote,ip=127.0.0.1
+
+    To start controller:
+    $ ./pox.py log.level --DEBUG misc.router misc.full_payload 
+
+    It does not matter which should start first
+
+2. Code Description
+    For router_exercise_topo.py:
+        This file creates mininet topology for part 1: it adds hosts and switches, and adds links to 
+    connect hosts and switches to create topology specified in the spec.
+
+    For router.py
+        This file is the router controller, and it does the following support:
+
+        ARP support:
+            * arp cache
+            * routing table (create a structure with all of the information statically assigned)
+            * message queue (while the router waits for an ARP reply)
+
+        Static Routing:
+            * Handle all ipv4 traffic that comes through the router by forwarding it to the correct subnet. 
+            * The only change in the packet should be the source and destination MAC addresses.
+            * The router is accelerated by injecting flows, which is done when the first IPv4 packet comes
+
+        ICMP:
+            * controller may receive ICMP echo (ping) requests for the router, which it should respond to
+            * packets for unreachable subnets should be responded to with ICMP network unreachable messages
+        
+
+    The router deals with incoming packets as follows:
+        - ARP Request to router         =>      Generate ARP response
+        - ARP Reply to other host       =>      Route (forward if in same subnet) it to destination
+        - ARP Reply to the router       =>      Clear the corresponding pending packet queue
+                                                as we already know the next hop MAC address
+        - ICMP Request to the router    =>      Generate ICMP echo reply response
+        - ICMP Response to the router   =>      Do nothing
+        - ICMP Request to other hosts   =>      Route it to destination
+        - ICMP Response to other hosts  =>      Route it to destination
+        - Normal TCP/UDP packets        =>      Route it to destination and inject flow
+        - Invalid dest address          =>      Generate ICMP destination unreachable response
+    
+    Note of course when the router does not know the MAC address of the next hop to destination,
+    the router will queue the packet, and generate an ARP request to the next hop immediately.
+
+
+
+
+
+

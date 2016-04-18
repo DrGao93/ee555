@@ -1,6 +1,14 @@
 """
-
     EE 555 Project - Router Exercise
+
+        PART I
+
+    Name:   Hao Zhang
+    Email:  zhan849@usc.edu
+    USC ID: 5211-2727-12
+
+    To run:
+    $ ./pox.py log.level --DEBUG misc.router misc.full_payload        
 
     ARP support:
         * arp cache

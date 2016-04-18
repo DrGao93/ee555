@@ -2,6 +2,15 @@
 
     EE 555 Project - Router Exercise
 
+        PART II
+
+    Name:   Hao Zhang
+    Email:  zhan849@usc.edu
+    USC ID: 5211-2727-12
+
+    To Run:
+    $ ./pox.py log.level --DEBUG misc.router_part2 misc.full_payload
+
     ARP support:
         * arp cache
         * routing table (create a structure with all of the information statically assigned)
@@ -52,7 +61,6 @@ def is_same_subnet(ip1, ip2):
     if a==e and b==f and c==g:
         return True
     else:
-        log.debug('%s and %s are not from same subnet'%(str1, str2))
         return False
 
 class Router (EventMixin):
@@ -191,7 +199,6 @@ class Router (EventMixin):
             self.connections[dpid].send(msg)
             log.debug("DPID %d: sending arp wait packet, buffer id: %d, destip: %s, destmac: %s, output port: %d" % (dpid, bid, str(ip), str(self.arpTable[dpid][ip]), self.routingTable[dpid][ip]))
             del self.arpWait[dpid][ip][0]
-        #print self.arpWait[dpid]
 
     def _generate_arp_response(self, a, inport, dpid):
         r = arp()
@@ -234,7 +241,6 @@ class Router (EventMixin):
         msg = of.ofp_packet_out()
         msg.data = e.pack()
         msg.actions.append(of.ofp_action_output(port = of.OFPP_FLOOD))
-#        msg.in_port = inport
         self.connections[dpid].send(msg)
 
     def _generate_icmp_reply(self, dpid, p, srcip, dstip, icmp_type):
@@ -298,20 +304,12 @@ class Router (EventMixin):
 
     
     def _validate_ip(self, ip):
-        print ip
-        print self.validIP
-        if ip in self.validIP:
-            print 'yes'
-            return True
-        else:
-            print 'No'
-            return False
+        return ip in self.validIP
 
     def _handle_PacketIn (self, event):
         packet = event.parsed # This is the parsed packet data.
         dpid = event.connection.dpid
         inport = event.port
-#        self._learn_from_dpid(dpid, event.connection)
 
         # error checking and sanitation
         if not packet.parsed:
@@ -338,7 +336,7 @@ class Router (EventMixin):
 
             if str(n.dstip) == str(self.routerIP[dpid]):
                 if isinstance(n.next, icmp):
-                    log.debug("DPID %d:ICMP packet to this router" % dpid )
+                    log.debug("DPID %d: ICMP packet to this router" % dpid )
                     if n.next.type == pkt.TYPE_ECHO_REQUEST:
                         # generate ICMP echo reply
                         self._generate_icmp_reply(dpid, packet, n.srcip, n.dstip, pkt.TYPE_ECHO_REPLY)
@@ -372,52 +370,13 @@ class Router (EventMixin):
 
                     self._add_route_ipv4_flow_mod(n.dstip, self.arpTable[dpid][n.dstip], self.routingTable[dpid][n.dstip], dpid)
 
-            '''
-            if n.dstip in self.fakeways:
-                # there is an IPv4 packet destined to the router
-                if isinstance(n.next, icmp):
-                    log.debug("ICMP packet to this router")
-                    if n.next.type == pkt.TYPE_ECHO_REQUEST:
-                        self._generate_icmp_reply(dpid, packet, n.srcip, n.dstip, pkt.TYPE_ECHO_REPLY)
-                        
-            else:
-                # need to check ARP
-                
-                
-                if n.dstip not in self.routingTable[dpid] or n.dstip not in self.arpTable[dpid]:
-                    # cache it and send ARP request
-                    if n.dstip not in self.arpWait[dpid]:
-                        self.arpWait[dpid][n.dstip] = []
-                    entry = (packet_in.buffer_id, inport)
-                    self.arpWait[dpid][n.dstip].append(entry)
-                    log.debug('DPID %d, packet %s => %s, buffer_id %d, destination unknown, added to arpWait, prepare arp request' % (dpid, str(n.srcip), str(n.dstip), packet_in.buffer_id))
-                    self._generate_arp_request(packet, inport, dpid)
-                else:
-                    #self._resend_packet (dpid, packet_in, self.routingTable[dpid][n.dstip])
-                    msg = of.ofp_packet_out(buffer_id=packet_in.buffer_id, in_port=inport)
-                    msg.actions.append(of.ofp_action_dl_addr.set_dst(self.arpTable[dpid][n.dstip]))
-                    msg.actions.append(of.ofp_action_output(port = self.routingTable[dpid][n.dstip]))
-                    self.connections[dpid].send(msg)
-                    log.debug('DPID %d, packet %s => %s, sent to port %d', dpid, str(n.srcip), str(n.dstip), self.routingTable[dpid][n.dstip])
-
-                    self._add_route_ipv4_flow_mod(n, dpid)
-                '''
-
         elif isinstance(n, arp):
-#            print str(packet.src), '\n', str(packet.dst), '\n', str(packet.type), '\n', str(packet.parsed)
             self._learn_route(n.protosrc, dpid, inport)
-#            if not self._validate_ip(n.protodst):
-#                self._generate_icmp_reply(dpid, packet, n.protosrc, n.protodst, pkt.TYPE_DEST_UNREACH)
-#                return
             self._process_arp_packet(n, inport, dpid, packet_in)
 
 
             
 
 
-#def launch (fakeways="10.0.1.1,10.0.2.1,10.0.3.1"):
 def launch():
-    #gateway_list = fakeways.split(',')
-    #fakeways = [IPAddr(x) for x in gateway_list]
-    #log.debug(str(fakeways))
     core.registerNew(Router)
