@@ -51,8 +51,10 @@ def dpid_to_mac(dpid):
     return EthAddr("%012x" % (dpid & 0xffffffffffff | 0x0000000000f0,))
 
 def dpid_to_ip(dpid):
+    # generate corresponding ip
     return IPAddr('10.0.%d.1' % (dpid) )
 
+# determine whether the two IPs are in the same address
 def is_same_subnet(ip1, ip2):
     str1 = str(ip1)
     str2 = str(ip2)
@@ -63,6 +65,7 @@ def is_same_subnet(ip1, ip2):
     else:
         return False
 
+# main router class
 class Router (EventMixin):
     def __init__ (self):
         log.debug('router registered')
@@ -110,14 +113,17 @@ class Router (EventMixin):
         self.connections[dpid].send(msg)
 
 
+    # this event is for router registering at POX
     def _handle_GoingUpEvent (self, event):
         self.listenTo(core.openflow)
         log.debug("Router is UP..." )
 
+    # this event is for switch connecting to controller
     def _handle_ConnectionUp(self, event):
         log.debug("DPID %d is UP..." % event.dpid)
         self._learn_from_ConnectionUp(event)
 
+    # this event is for switch disconnecting to controller
     def _handle_ConnectionDown(self, event):
         log.debug("DPID %d is DOWN, cleaning dp cache" % event.dpid)
         if event.dpid in self.arpTable:
@@ -135,6 +141,7 @@ class Router (EventMixin):
         if event.dpid in self.routerIP:
             del self.routerIP[event.dpid]
 
+    # create relevant data structures for switches
     def _learn_from_ConnectionUp(self, event):
         dpid = event.dpid
         myip = dpid_to_ip( dpid )

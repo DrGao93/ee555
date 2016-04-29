@@ -9,7 +9,7 @@
 
     The topology file for part 2.
     To run:
-    $ sudo mn --custom ee555P2.py --topo ee555P2 --mac --controller=remote,ip=127.0.0.1
+    $ sudo mn --custom ee555part2.py --topo ee555P2 --mac --controller=remote,ip=127.0.0.1
 
 '''
 
